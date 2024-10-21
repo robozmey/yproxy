@@ -85,3 +85,7 @@ func (s *FileStorageInteractor) MoveObject(from string, to string) error {
 func (s *FileStorageInteractor) DeleteObject(key string) error {
 	return os.Remove(path.Join(s.cnf.StoragePrefix, key))
 }
+
+func (s *FileStorageInteractor) AbortMultipartUploads() error {
+	return nil
+}

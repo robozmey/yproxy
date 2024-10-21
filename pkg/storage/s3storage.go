@@ -249,3 +249,43 @@ func (s *S3StorageInteractor) MoveObject(from string, to string) error {
 	}
 	return s.DeleteObject(from)
 }
+
+func (s *S3StorageInteractor) AbortMultipartUploads() error {
+	sess, err := s.pool.GetSession(context.TODO())
+	if err != nil {
+		return err
+	}
+
+	uploads := make([]*s3.MultipartUpload, 0)
+	var keyMarker *string
+	for {
+		out, err := sess.ListMultipartUploads(&s3.ListMultipartUploadsInput{
+			Bucket:    aws.String(s.cnf.StorageBucket),
+			KeyMarker: keyMarker,
+		})
+		if err != nil {
+			return err
+		}
+
+		uploads = append(uploads, out.Uploads...)
+
+		if !*out.IsTruncated {
+			break
+		}
+
+		keyMarker = out.NextKeyMarker
+	}
+
+	for i := 0; i < len(uploads); i++ {
+		_, err := sess.AbortMultipartUpload(&s3.AbortMultipartUploadInput{
+			Bucket:   aws.String(s.cnf.StorageBucket),
+			UploadId: uploads[i].UploadId,
+			Key:      uploads[i].Key,
+		})
+		if err != nil {
+			return err
+		}
+	}
+
+	return nil
+}

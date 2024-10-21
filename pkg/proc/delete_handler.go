@@ -76,6 +76,10 @@ func (dh *BasicDeleteHandler) HandleDeleteGarbage(msg message.DeleteMessage) err
 		return errors.Wrap(err, "failed to move some files")
 	}
 
+	if err := dh.StorageInterractor.AbortMultipartUploads(); err != nil {
+		return err
+	}
+
 	return nil
 }
 
