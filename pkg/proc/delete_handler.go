@@ -33,6 +33,11 @@ func (dh *BasicDeleteHandler) HandleDeleteGarbage(msg message.DeleteMessage) err
 	if err != nil {
 		return errors.Wrap(err, "failed to delete file")
 	}
+	uploads, err := dh.StorageInterractor.ListFailedMultipartUploads()
+	if err != nil {
+		return err
+	}
+	ylogger.Zero.Info().Int("amount", len(uploads)).Msg("multipart uploads will be aborted")
 
 	if !msg.Confirm { //do not delete files if no confirmation flag provided
 		return nil
@@ -74,6 +79,12 @@ func (dh *BasicDeleteHandler) HandleDeleteGarbage(msg message.DeleteMessage) err
 		ylogger.Zero.Error().Int("failed files count", len(fileList)).Msg("some files were not moved")
 		ylogger.Zero.Error().Any("failed files", fileList).Msg("failed to move some files")
 		return errors.Wrap(err, "failed to move some files")
+	}
+
+	for key, uploadId := range uploads {
+		if err := dh.StorageInterractor.AbortMultipartUpload(key, uploadId); err != nil {
+			return err
+		}
 	}
 
 	return nil

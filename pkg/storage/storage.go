@@ -21,11 +21,13 @@ type StorageWriter interface {
 
 type StorageLister interface {
 	ListPath(prefix string) ([]*object.ObjectInfo, error)
+	ListFailedMultipartUploads() (map[string]string, error)
 }
 
 type StorageMover interface {
 	MoveObject(from string, to string) error
 	DeleteObject(key string) error
+	AbortMultipartUpload(key, uploadId string) error
 }
 
 //go:generate mockgen -destination=pkg/mock/storage.go -package=mock
