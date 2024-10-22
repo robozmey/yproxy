@@ -248,7 +248,7 @@ func ProcessCopyExtended(msg message.CopyMessage, s storage.StorageInteractor, c
 		retryCount++
 		for i := 0; i < len(objectMetas); i++ {
 			path := strings.TrimPrefix(objectMetas[i].Path, instanceCnf.StorageCnf.StoragePrefix)
-			reworked := ReworkFileName(path)
+			reworked := path
 			if _, ok := vi[reworked]; !ok {
 				ylogger.Zero.Debug().Str("object path", objectMetas[i].Path).Msg("not in virtual index, skipping...")
 				continue
