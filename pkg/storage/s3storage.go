@@ -40,7 +40,7 @@ func (s *S3StorageInteractor) CatFileFromStorage(name string, offset int64, sett
 		return nil, err
 	}
 
-	objectPath := path.Join(s.cnf.StoragePrefix, name)
+	objectPath := strings.TrimLeft(path.Join(s.cnf.StoragePrefix, name), "/")
 
 	tableSpace := ResolveStorageSetting(setts, message.TableSpaceSetting, tablespace.DefaultTableSpace)
 
@@ -71,7 +71,7 @@ func (s *S3StorageInteractor) PutFileToDest(name string, r io.Reader, settings [
 		return err
 	}
 
-	objectPath := path.Join(s.cnf.StoragePrefix, name)
+	objectPath := strings.TrimLeft(path.Join(s.cnf.StoragePrefix, name), "/")
 
 	storageClass := ResolveStorageSetting(settings, message.StorageClassSetting, "STANDARD")
 	tableSpace := ResolveStorageSetting(settings, message.TableSpaceSetting, tablespace.DefaultTableSpace)
@@ -132,7 +132,7 @@ func (s *S3StorageInteractor) PatchFile(name string, r io.ReadSeeker, startOffse
 		return nil
 	}
 
-	objectPath := path.Join(s.cnf.StoragePrefix, name)
+	objectPath := strings.TrimLeft(path.Join(s.cnf.StoragePrefix, name), "/")
 
 	input := &s3.PatchObjectInput{
 		Bucket:       &s.cnf.StorageBucket,
@@ -157,7 +157,7 @@ func (s *S3StorageInteractor) ListPath(prefix string) ([]*object.ObjectInfo, err
 	}
 
 	var continuationToken *string
-	prefix = path.Join(s.cnf.StoragePrefix, prefix)
+	prefix = strings.TrimLeft(path.Join(s.cnf.StoragePrefix, prefix), "/")
 	metas := make([]*object.ObjectInfo, 0)
 
 	for {
@@ -200,6 +200,7 @@ func (s *S3StorageInteractor) DeleteObject(key string) error {
 	if !strings.HasPrefix(key, s.cnf.StoragePrefix) {
 		key = path.Join(s.cnf.StoragePrefix, key)
 	}
+	key = strings.TrimLeft(key, "/")
 
 	input2 := s3.DeleteObjectInput{
 		Bucket: &s.cnf.StorageBucket,
@@ -226,10 +227,12 @@ func (s *S3StorageInteractor) SScopyObject(from string, to string) error {
 	if !strings.HasPrefix(from, s.cnf.StoragePrefix) {
 		from = path.Join(s.cnf.StoragePrefix, from)
 	}
+	from = strings.TrimLeft(from, "/")
 
 	if !strings.HasPrefix(to, s.cnf.StoragePrefix) {
 		to = path.Join(s.cnf.StoragePrefix, to)
 	}
+	to = strings.TrimLeft(to, "/")
 
 	inp := s3.CopyObjectInput{
 		Bucket:     &s.cnf.StorageBucket,
