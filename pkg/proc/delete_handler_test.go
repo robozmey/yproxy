@@ -5,52 +5,12 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/yezzey-gp/yproxy/config"
-	"github.com/yezzey-gp/yproxy/pkg/database"
 	"github.com/yezzey-gp/yproxy/pkg/message"
 	mock "github.com/yezzey-gp/yproxy/pkg/mock"
 	"github.com/yezzey-gp/yproxy/pkg/object"
 	"github.com/yezzey-gp/yproxy/pkg/proc"
 	"go.uber.org/mock/gomock"
 )
-
-func TestReworkingName(t *testing.T) {
-	type TestCase struct {
-		input    string
-		expected string
-	}
-
-	testCases := []TestCase{
-		{
-			input:    "/segments_005/seg1/basebackups_005/yezzey/1663_16530_a4c5ad8305b83f07200b020694c36563_17660_1__DY_1_xlog_19649822496",
-			expected: "1663_16530_a4c5ad8305b83f07200b020694c36563_17660_",
-		},
-		{
-			input:    "1663_16530_a4c5ad8305b83f07200b020694c36563_17660_1__DY_1_xlog_19649822496",
-			expected: "1663_16530_a4c5ad8305b83f07200b020694c36563_17660_",
-		},
-		{
-			input:    "seg1/basebackups_005/yezzey/1663_16530_a4c5ad8305b83f07200b020694c36563_17660_1__DY_1_xlog_19649822496",
-			expected: "1663_16530_a4c5ad8305b83f07200b020694c36563_17660_",
-		},
-		{
-			input:    "1663_16530_a4c5ad8305b83f07200b020694c36563",
-			expected: "1663_16530_a4c5ad8305b83f07200b020694c36563",
-		},
-		{
-			input:    "1663___a4c5ad8305b83f07200b020694c36563___",
-			expected: "1663___a4c5ad8305b83f07200b020694c36563_",
-		},
-		{
-			input:    "file",
-			expected: "file",
-		},
-	}
-
-	for _, testCase := range testCases {
-		ans := database.ReworkFileName(testCase.input)
-		assert.Equal(t, testCase.expected, ans)
-	}
-}
 
 func TestFilesToDeletion(t *testing.T) {
 	ctrl := gomock.NewController(t)

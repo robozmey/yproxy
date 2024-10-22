@@ -134,7 +134,7 @@ func (dh *BasicDeleteHandler) ListGarbageFiles(msg message.DeleteMessage) ([]str
 
 	filesToDelete := make([]string, 0)
 	for i := 0; i < len(objectMetas); i++ {
-		reworkedName := database.ReworkFileName(objectMetas[i].Path)
+		reworkedName := objectMetas[i].Path
 		ylogger.Zero.Debug().Str("reworked name", reworkedName).Msg("lookup chunk")
 
 		if vi[reworkedName] {

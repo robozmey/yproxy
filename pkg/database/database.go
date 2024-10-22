@@ -2,7 +2,6 @@ package database
 
 import (
 	"fmt"
-	"strings"
 
 	"github.com/jackc/pgx"
 	"github.com/jackc/pgx/pgtype"
@@ -81,7 +80,7 @@ func (database *DatabaseHandler) GetVirtualExpireIndexes(port uint64) (map[strin
 		if err := rows2.Scan(&xpath); err != nil {
 			return nil, nil, fmt.Errorf("unable to parse query output %v", err)
 		}
-		p2 := ReworkFileName(xpath)
+		p2 := xpath
 		c2[p2] = true
 		ylogger.Zero.Debug().Str("file", p2).Msg("added")
 	}
@@ -169,10 +168,4 @@ func connectToDatabase(port uint64, database string) (*pgx.Conn, error) {
 		}
 	}
 	return conn, nil
-}
-
-func ReworkFileName(str string) string {
-	p1 := strings.Split(str, "/")
-	p2 := strings.Join(p1, "_")
-	return p2
 }
