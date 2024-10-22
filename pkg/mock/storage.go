@@ -133,6 +133,21 @@ func (m *MockStorageLister) EXPECT() *MockStorageListerMockRecorder {
 	return m.recorder
 }
 
+// ListFailedMultipartUploads mocks base method.
+func (m *MockStorageLister) ListFailedMultipartUploads() (map[string]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListFailedMultipartUploads")
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListFailedMultipartUploads indicates an expected call of ListFailedMultipartUploads.
+func (mr *MockStorageListerMockRecorder) ListFailedMultipartUploads() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFailedMultipartUploads", reflect.TypeOf((*MockStorageLister)(nil).ListFailedMultipartUploads))
+}
+
 // ListPath mocks base method.
 func (m *MockStorageLister) ListPath(prefix string) ([]*object.ObjectInfo, error) {
 	m.ctrl.T.Helper()
@@ -172,18 +187,18 @@ func (m *MockStorageMover) EXPECT() *MockStorageMoverMockRecorder {
 	return m.recorder
 }
 
-// AbortMultipartUploads mocks base method.
-func (m *MockStorageMover) AbortMultipartUploads() error {
+// AbortMultipartUpload mocks base method.
+func (m *MockStorageMover) AbortMultipartUpload(key, uploadId string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AbortMultipartUploads")
+	ret := m.ctrl.Call(m, "AbortMultipartUpload", key, uploadId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// AbortMultipartUploads indicates an expected call of AbortMultipartUploads.
-func (mr *MockStorageMoverMockRecorder) AbortMultipartUploads() *gomock.Call {
+// AbortMultipartUpload indicates an expected call of AbortMultipartUpload.
+func (mr *MockStorageMoverMockRecorder) AbortMultipartUpload(key, uploadId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AbortMultipartUploads", reflect.TypeOf((*MockStorageMover)(nil).AbortMultipartUploads))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AbortMultipartUpload", reflect.TypeOf((*MockStorageMover)(nil).AbortMultipartUpload), key, uploadId)
 }
 
 // DeleteObject mocks base method.
@@ -238,18 +253,18 @@ func (m *MockStorageInteractor) EXPECT() *MockStorageInteractorMockRecorder {
 	return m.recorder
 }
 
-// AbortMultipartUploads mocks base method.
-func (m *MockStorageInteractor) AbortMultipartUploads() error {
+// AbortMultipartUpload mocks base method.
+func (m *MockStorageInteractor) AbortMultipartUpload(key, uploadId string) error {
 	m.ctrl.T.Helper()
-	ret := m.ctrl.Call(m, "AbortMultipartUploads")
+	ret := m.ctrl.Call(m, "AbortMultipartUpload", key, uploadId)
 	ret0, _ := ret[0].(error)
 	return ret0
 }
 
-// AbortMultipartUploads indicates an expected call of AbortMultipartUploads.
-func (mr *MockStorageInteractorMockRecorder) AbortMultipartUploads() *gomock.Call {
+// AbortMultipartUpload indicates an expected call of AbortMultipartUpload.
+func (mr *MockStorageInteractorMockRecorder) AbortMultipartUpload(key, uploadId any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
-	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AbortMultipartUploads", reflect.TypeOf((*MockStorageInteractor)(nil).AbortMultipartUploads))
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "AbortMultipartUpload", reflect.TypeOf((*MockStorageInteractor)(nil).AbortMultipartUpload), key, uploadId)
 }
 
 // CatFileFromStorage mocks base method.
@@ -279,6 +294,21 @@ func (m *MockStorageInteractor) DeleteObject(key string) error {
 func (mr *MockStorageInteractorMockRecorder) DeleteObject(key any) *gomock.Call {
 	mr.mock.ctrl.T.Helper()
 	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "DeleteObject", reflect.TypeOf((*MockStorageInteractor)(nil).DeleteObject), key)
+}
+
+// ListFailedMultipartUploads mocks base method.
+func (m *MockStorageInteractor) ListFailedMultipartUploads() (map[string]string, error) {
+	m.ctrl.T.Helper()
+	ret := m.ctrl.Call(m, "ListFailedMultipartUploads")
+	ret0, _ := ret[0].(map[string]string)
+	ret1, _ := ret[1].(error)
+	return ret0, ret1
+}
+
+// ListFailedMultipartUploads indicates an expected call of ListFailedMultipartUploads.
+func (mr *MockStorageInteractorMockRecorder) ListFailedMultipartUploads() *gomock.Call {
+	mr.mock.ctrl.T.Helper()
+	return mr.mock.ctrl.RecordCallWithMethodType(mr.mock, "ListFailedMultipartUploads", reflect.TypeOf((*MockStorageInteractor)(nil).ListFailedMultipartUploads))
 }
 
 // ListPath mocks base method.

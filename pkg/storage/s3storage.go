@@ -8,6 +8,7 @@ import (
 	"path"
 	"strconv"
 	"strings"
+	"sync"
 
 	"github.com/yezzey-gp/aws-sdk-go/aws"
 	"github.com/yezzey-gp/aws-sdk-go/service/s3"
@@ -27,7 +28,8 @@ type S3StorageInteractor struct {
 
 	cnf *config.Storage
 
-	bucketMap map[string]string
+	bucketMap        map[string]string
+	multipartUploads sync.Map
 }
 
 func (s *S3StorageInteractor) CatFileFromStorage(name string, offset int64, setts []settings.StorageSettings) (io.ReadCloser, error) {
@@ -96,6 +98,7 @@ func (s *S3StorageInteractor) PutFileToDest(name string, r io.Reader, settings [
 	}
 
 	if multipartUpload {
+		s.multipartUploads.Store(objectPath, true)
 		_, err = up.Upload(
 			&s3manager.UploadInput{
 				Bucket:       aws.String(bucket),
@@ -104,6 +107,7 @@ func (s *S3StorageInteractor) PutFileToDest(name string, r io.Reader, settings [
 				StorageClass: aws.String(storageClass),
 			},
 		)
+		s.multipartUploads.Delete(objectPath)
 	} else {
 		var body []byte
 		body, err = io.ReadAll(r)
@@ -250,10 +254,24 @@ func (s *S3StorageInteractor) MoveObject(from string, to string) error {
 	return s.DeleteObject(from)
 }
 
-func (s *S3StorageInteractor) AbortMultipartUploads() error {
+func (s *S3StorageInteractor) AbortMultipartUpload(key, uploadId string) error {
 	sess, err := s.pool.GetSession(context.TODO())
 	if err != nil {
 		return err
+	}
+
+	_, err = sess.AbortMultipartUpload(&s3.AbortMultipartUploadInput{
+		Bucket:   aws.String(s.cnf.StorageBucket),
+		UploadId: aws.String(uploadId),
+		Key:      aws.String(key),
+	})
+	return err
+}
+
+func (s *S3StorageInteractor) ListFailedMultipartUploads() (map[string]string, error) {
+	sess, err := s.pool.GetSession(context.TODO())
+	if err != nil {
+		return nil, err
 	}
 
 	uploads := make([]*s3.MultipartUpload, 0)
@@ -264,7 +282,7 @@ func (s *S3StorageInteractor) AbortMultipartUploads() error {
 			KeyMarker: keyMarker,
 		})
 		if err != nil {
-			return err
+			return nil, err
 		}
 
 		uploads = append(uploads, out.Uploads...)
@@ -276,16 +294,11 @@ func (s *S3StorageInteractor) AbortMultipartUploads() error {
 		keyMarker = out.NextKeyMarker
 	}
 
-	for i := 0; i < len(uploads); i++ {
-		_, err := sess.AbortMultipartUpload(&s3.AbortMultipartUploadInput{
-			Bucket:   aws.String(s.cnf.StorageBucket),
-			UploadId: uploads[i].UploadId,
-			Key:      uploads[i].Key,
-		})
-		if err != nil {
-			return err
+	out := make(map[string]string)
+	for _, upload := range uploads {
+		if _, ok := s.multipartUploads.Load(*upload.Key); !ok {
+			out[*upload.Key] = *upload.UploadId
 		}
 	}
-
-	return nil
+	return out, nil
 }
