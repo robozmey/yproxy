@@ -31,7 +31,7 @@ func (s *FileStorageInteractor) CatFileFromStorage(name string, offset int64, _ 
 }
 func (s *FileStorageInteractor) ListPath(prefix string) ([]*object.ObjectInfo, error) {
 	var data []*object.ObjectInfo
-	err := filepath.WalkDir(s.cnf.StoragePrefix+prefix, func(path string, d fs.DirEntry, err error) error {
+	err := filepath.WalkDir(s.cnf.StoragePrefix, func(path string, d fs.DirEntry, err error) error {
 		if err != nil {
 			return err
 		}
@@ -45,6 +45,12 @@ func (s *FileStorageInteractor) ListPath(prefix string) ([]*object.ObjectInfo, e
 		fileinfo, err := file.Stat()
 		if err != nil {
 			return err
+		}
+
+		cuttedPrefix, _ := strings.CutPrefix(prefix, "/")
+		neededPrefix := s.cnf.StoragePrefix + cuttedPrefix
+		if !strings.HasPrefix(path, neededPrefix) {
+			return nil
 		}
 		cPath, ok := strings.CutPrefix(path, s.cnf.StoragePrefix)
 
@@ -88,4 +94,12 @@ func (s *FileStorageInteractor) DeleteObject(key string) error {
 
 func (s *FileStorageInteractor) AbortMultipartUploads() error {
 	return nil
+}
+
+func (s *FileStorageInteractor) AbortMultipartUpload(key, uploadId string) error {
+	return nil
+}
+
+func (s *FileStorageInteractor) ListFailedMultipartUploads() (map[string]string, error) {
+	return nil, nil
 }
