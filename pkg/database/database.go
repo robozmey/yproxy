@@ -23,11 +23,13 @@ type DB struct {
 	oid        pgtype.OID
 }
 
-type Ei struct {
-	reloid     pgtype.OID
-	relfileoid pgtype.OID
-	expireLsn  string
-	fqnmd5     string
+type ExpireHint struct {
+	expireLsn string
+	x_path    string
+}
+
+func (database *DatabaseHandler) populateIndex() {
+
 }
 
 func (database *DatabaseHandler) GetVirtualExpireIndexes(port uint64) (map[string]bool, map[string]uint64, error) { //TODO несколько баз
@@ -43,36 +45,39 @@ func (database *DatabaseHandler) GetVirtualExpireIndexes(port uint64) (map[strin
 	defer conn.Close() //error
 	ylogger.Zero.Debug().Msg("connected to database")
 
-	rows, err := conn.Query(`SELECT reloid, relfileoid, expire_lsn, fqnmd5 FROM yezzey.yezzey_expire_index WHERE expire_lsn != '0/0';`)
-	if err != nil {
-		return nil, nil, fmt.Errorf("unable to get ao/aocs tables %v", err) //fix
-	}
-	defer rows.Close()
-	ylogger.Zero.Debug().Msg("executed select")
-
 	c := make(map[string]uint64, 0)
-	for rows.Next() {
-		row := Ei{}
-		if err := rows.Scan(&row.reloid, &row.relfileoid, &row.expireLsn, &row.fqnmd5); err != nil {
-			return nil, nil, fmt.Errorf("unable to parse query output %v", err)
-		}
 
-		lsn, err := pgx.ParseLSN(row.expireLsn)
+	/* Todo: check that yezzey version >= 1.8.1 */
+	if false {
+		rows, err := conn.Query(`SELECT x_path, expire_lsn FROM yezzey.yezzey_expire_hint;`)
 		if err != nil {
-			return nil, nil, fmt.Errorf("unable to parse query output %v", err)
+			return nil, nil, fmt.Errorf("unable to get ao/aocs tables %v", err) //fix
 		}
+		defer rows.Close()
+		ylogger.Zero.Debug().Msg("executed select")
 
-		ylogger.Zero.Debug().Str("file", fmt.Sprintf("%d_%d_%s_%d_", db.tablespace, db.oid, row.fqnmd5, row.relfileoid)).Msg("added file to ei")
-		c[fmt.Sprintf("%d_%d_%s_%d_", db.tablespace, db.oid, row.fqnmd5, row.relfileoid)] = lsn
+		for rows.Next() {
+			row := ExpireHint{}
+			if err := rows.Scan(&row.x_path, &row.expireLsn); err != nil {
+				return nil, nil, fmt.Errorf("unable to parse query output %v", err)
+			}
+
+			lsn, err := pgx.ParseLSN(row.expireLsn)
+			if err != nil {
+				return nil, nil, fmt.Errorf("unable to parse query output %v", err)
+			}
+
+			ylogger.Zero.Debug().Str("x_path", row.x_path).Str("lsn", row.expireLsn).Msg("added file to expire hint")
+			c[row.x_path] = lsn
+		}
+		ylogger.Zero.Debug().Msg("fetched expire hint info")
 	}
-	ylogger.Zero.Debug().Msg("read 1")
 
 	rows2, err := conn.Query(`SELECT x_path FROM yezzey.yezzey_virtual_index;`)
 	if err != nil {
 		return nil, nil, fmt.Errorf("unable to get ao/aocs tables %v", err) //fix
 	}
 	defer rows2.Close()
-	ylogger.Zero.Debug().Msg("read 2")
 
 	c2 := make(map[string]bool, 0)
 	for rows2.Next() {
@@ -80,11 +85,10 @@ func (database *DatabaseHandler) GetVirtualExpireIndexes(port uint64) (map[strin
 		if err := rows2.Scan(&xpath); err != nil {
 			return nil, nil, fmt.Errorf("unable to parse query output %v", err)
 		}
-		p2 := xpath
-		c2[p2] = true
-		ylogger.Zero.Debug().Str("file", p2).Msg("added")
+		c2[xpath] = true
+		ylogger.Zero.Debug().Str("x_path", xpath).Msg("added")
 	}
-	ylogger.Zero.Debug().Msg("read 3")
+	ylogger.Zero.Debug().Msg("fetched virtual index  info")
 
 	return c2, c, err
 }
