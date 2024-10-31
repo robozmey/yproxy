@@ -51,5 +51,10 @@ func (r *ProtoReader) ReadPacket() (message.MessageType, []byte, error) {
 	}
 
 	msgType := message.MessageType(data[0])
+
+	if (msgType == message.MessageTypeError) {
+		return msgType, data, fmt.Errorf("proxy error: %s", data)
+	}
+
 	return msgType, data, nil
 }
