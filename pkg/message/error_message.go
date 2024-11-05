@@ -32,7 +32,7 @@ func (c *ErrorMessage) Encode() []byte {
 	encodedMessage = append(encodedMessage, byteLen...)
 	encodedMessage = append(encodedMessage, byteError...)
 
-	byteMessage := []byte(c.Error)
+	byteMessage := []byte(c.Message)
 	binary.BigEndian.PutUint64(byteLen, uint64(len(byteMessage)))
 	encodedMessage = append(encodedMessage, byteLen...)
 	encodedMessage = append(encodedMessage, byteMessage...)
