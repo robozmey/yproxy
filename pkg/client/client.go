@@ -1,12 +1,11 @@
 package client
 
 import (
-	"fmt"
 	"io"
 	"net"
 	"reflect"
-	"encoding/binary"
 
+	"github.com/yezzey-gp/yproxy/pkg/message"
 	"github.com/yezzey-gp/yproxy/pkg/ylogger"
 )
 
@@ -77,21 +76,7 @@ func NewYClient(c net.Conn) YproxyClient {
 func (y *YClient) ReplyError(err error, msg string) error {
 	ylogger.Zero.Error().Err(err).Msg(msg)
 
-	bt := []byte{
-		byte(55),
-		0,
-		0,
-		0,
-	}
-
-	bt = append(bt, []byte(fmt.Sprintf("%s: %v", msg, err))...)
-	bt = append(bt, 0)
-	ln := len(bt) + 8
-
-	bs := make([]byte, 8)
-	binary.BigEndian.PutUint64(bs, uint64(ln))
-
-	_, _ = y.Conn.Write(append(bs, bt...))
+	_, _ = y.Conn.Write(message.NewErrorMessage(err, msg).Encode())
 	return nil
 }
 
